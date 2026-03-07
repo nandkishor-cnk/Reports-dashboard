@@ -1,0 +1,27 @@
+# ── Secrets — NEVER commit ────────────────────────────────────
+.env.local
+.env.*.local
+*.env
+
+# ── Live data (internal business metrics) ─────────────────────
+public/live_data.json
+
+# ── Node / Vite ───────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+*.local
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# ── Claude Code internal ──────────────────────────────────────
+.claude/
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
