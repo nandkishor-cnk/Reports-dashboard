@@ -3,8 +3,7 @@
 .env.*.local
 *.env
 
-# ── Live data (internal business metrics) ─────────────────────
-public/live_data.json
+# (live_data.json is checked in so Vercel has a fallback)
 
 # ── Node / Vite ───────────────────────────────────────────────
 node_modules/
