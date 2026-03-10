@@ -180,11 +180,9 @@ def fetch_telecrm():
     conn = psycopg2.connect(**TELECRM)
     cur  = conn.cursor()
 
-    placeholders = ",".join(["%s"] * len(ALL_TEAM_EMAILS))
-
-    # 1. Leads for Q1 FY2026
+    # 1. ALL Leads for Q1 FY2026 (not filtered by team — needed for marketing totals)
     print("  Fetching leads...")
-    cur.execute(f"""
+    cur.execute("""
         SELECT
             leadid,
             created_on,
@@ -195,12 +193,11 @@ def fetch_telecrm():
                  ELSE number_first_call_duration::INT END AS first_call_dur
         FROM leads
         WHERE created_on::date BETWEEN %s AND %s
-          AND LOWER(assignee) = ANY(%s::text[])
           AND COALESCE(is_deleted, false) = false
         ORDER BY created_on
-    """, (Q1_START, Q1_END, [e.lower() for e in ALL_TEAM_EMAILS]))
+    """, (Q1_START, Q1_END))
     leads = cur.fetchall()
-    print(f"  {len(leads)} leads in Q1 FY2026 for all teams")
+    print(f"  {len(leads)} leads in Q1 FY2026 (all assignees)")
 
     lead_ids = [r[0].strip() for r in leads]
     lead_map  = {}  # leadid → row

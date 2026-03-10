@@ -240,6 +240,8 @@ def get_last_sync(client, table_name, full_refresh=False):
     )
     if r.status_code == 200 and r.json():
         ts = r.json()[0].get("last_sync_at", "1970-01-01T00:00:00Z")
+        # Normalize fractional seconds to 6 digits (Python fromisoformat is strict)
+        ts = re.sub(r'\.(\d{1,6})\d*', lambda m: '.' + m.group(1).ljust(6, '0'), ts)
         return datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(IST).replace(tzinfo=None)
     return datetime(1970, 1, 1)
 
@@ -283,8 +285,7 @@ def upsert_batch(client, table, rows, conflict_col):
 
 # ── TeleCRM Pull: Leads ────────────────────────────────────────────────────────
 def pull_leads(cur, since_ist):
-    """Fetch leads updated since `since_ist` (naive IST datetime)."""
-    emails_lower = [e.lower() for e in ALL_TEAM_EMAILS]
+    """Fetch ALL leads updated since `since_ist` (naive IST datetime)."""
     cur.execute("""
         SELECT
             TRIM(leadid)                              AS telecrm_id,
@@ -342,11 +343,10 @@ def pull_leads(cur, since_ist):
             TRIM(dropdown_skill_map_group)            AS skill_map_group,
             TRIM(dropdown_lead_distributiontype)      AS lead_distribution_type
         FROM leads
-        WHERE LOWER(TRIM(assignee)) = ANY(%s::text[])
-          AND COALESCE(is_deleted, false) = false
+        WHERE COALESCE(is_deleted, false) = false
           AND (created_on >= %s OR updated_on >= %s)
         ORDER BY created_on
-    """, (emails_lower, since_ist, since_ist))
+    """, (since_ist, since_ist))
     return cur.fetchall()
 
 
