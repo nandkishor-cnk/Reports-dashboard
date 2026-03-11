@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-10T11:38:08.812717+00:00",
+  "generated_at": "2026-03-11T05:24:43.297983+00:00",
   "quarter": "Q1 FY2026",
   "data": {
     "edwin": {
@@ -7,7 +7,7 @@
         "total_leads": 793,
         "pct_contacted_sla": 28.8,
         "pct_connected": 51.7,
-        "pct_quote_sent": 19.7,
+        "pct_quote_sent": 19.2,
         "conversion_pct": 1.4,
         "no_of_bookings": 11,
         "pct_followups_sla": 92.3
@@ -69,7 +69,7 @@
       "Wk 8": {
         "total_leads": 592,
         "pct_contacted_sla": 13.7,
-        "pct_connected": 37.3,
+        "pct_connected": 37.5,
         "pct_quote_sent": 21.6,
         "conversion_pct": 0.5,
         "no_of_bookings": 3,
@@ -78,20 +78,20 @@
       "Wk 9": {
         "total_leads": 557,
         "pct_contacted_sla": 12.9,
-        "pct_connected": 40.9,
-        "pct_quote_sent": 26.2,
+        "pct_connected": 41.5,
+        "pct_quote_sent": 25.9,
         "conversion_pct": 0.2,
         "no_of_bookings": 1,
-        "pct_followups_sla": 69.4
+        "pct_followups_sla": 70.6
       },
       "Wk 10": {
-        "total_leads": 319,
-        "pct_contacted_sla": 21.6,
+        "total_leads": 356,
+        "pct_contacted_sla": 20.5,
         "pct_connected": 31.7,
-        "pct_quote_sent": 23.5,
+        "pct_quote_sent": 23.3,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
-        "pct_followups_sla": 45.5
+        "pct_followups_sla": 49.6
       }
     },
     "adarsh": {
@@ -99,7 +99,7 @@
         "total_leads": 772,
         "pct_contacted_sla": 28.6,
         "pct_connected": 55.6,
-        "pct_quote_sent": 3.8,
+        "pct_quote_sent": 3.6,
         "conversion_pct": 0.9,
         "no_of_bookings": 7,
         "pct_followups_sla": 78.9
@@ -114,10 +114,10 @@
         "pct_followups_sla": 69.1
       },
       "Wk 3": {
-        "total_leads": 638,
+        "total_leads": 639,
         "pct_contacted_sla": 19.4,
         "pct_connected": 46.2,
-        "pct_quote_sent": 9.7,
+        "pct_quote_sent": 9.5,
         "conversion_pct": 0.6,
         "no_of_bookings": 4,
         "pct_followups_sla": 74.9
@@ -126,7 +126,7 @@
         "total_leads": 824,
         "pct_contacted_sla": 12.7,
         "pct_connected": 39.9,
-        "pct_quote_sent": 10.8,
+        "pct_quote_sent": 10.6,
         "conversion_pct": 0.1,
         "no_of_bookings": 1,
         "pct_followups_sla": 64.0
@@ -135,19 +135,19 @@
         "total_leads": 890,
         "pct_contacted_sla": 11.6,
         "pct_connected": 41.0,
-        "pct_quote_sent": 12.5,
+        "pct_quote_sent": 12.4,
         "conversion_pct": 0.6,
         "no_of_bookings": 5,
-        "pct_followups_sla": 67.7
+        "pct_followups_sla": 68.1
       },
       "Wk 6": {
         "total_leads": 599,
         "pct_contacted_sla": 16.0,
         "pct_connected": 43.6,
-        "pct_quote_sent": 15.2,
+        "pct_quote_sent": 14.7,
         "conversion_pct": 0.7,
         "no_of_bookings": 4,
-        "pct_followups_sla": 76.7
+        "pct_followups_sla": 77.1
       },
       "Wk 7": {
         "total_leads": 360,
@@ -156,13 +156,13 @@
         "pct_quote_sent": 23.1,
         "conversion_pct": 0.3,
         "no_of_bookings": 1,
-        "pct_followups_sla": 65.5
+        "pct_followups_sla": 65.6
       },
       "Wk 8": {
         "total_leads": 461,
         "pct_contacted_sla": 21.9,
         "pct_connected": 53.8,
-        "pct_quote_sent": 36.4,
+        "pct_quote_sent": 34.9,
         "conversion_pct": 1.3,
         "no_of_bookings": 6,
         "pct_followups_sla": 69.0
@@ -170,20 +170,20 @@
       "Wk 9": {
         "total_leads": 293,
         "pct_contacted_sla": 22.2,
-        "pct_connected": 47.8,
+        "pct_connected": 48.1,
         "pct_quote_sent": 26.3,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
-        "pct_followups_sla": 61.8
+        "pct_followups_sla": 63.2
       },
       "Wk 10": {
-        "total_leads": 176,
-        "pct_contacted_sla": 21.6,
-        "pct_connected": 44.3,
-        "pct_quote_sent": 31.2,
+        "total_leads": 211,
+        "pct_contacted_sla": 19.0,
+        "pct_connected": 41.7,
+        "pct_quote_sent": 29.9,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
-        "pct_followups_sla": 49.8
+        "pct_followups_sla": 54.4
       }
     },
     "ashok": {
@@ -206,10 +206,10 @@
         "pct_followups_sla": 48.5
       },
       "Wk 3": {
-        "total_leads": 266,
+        "total_leads": 265,
         "pct_contacted_sla": 0.8,
         "pct_connected": 1.1,
-        "pct_quote_sent": 19.5,
+        "pct_quote_sent": 19.6,
         "conversion_pct": 0.4,
         "no_of_bookings": 1,
         "pct_followups_sla": 27.7
@@ -230,7 +230,7 @@
         "pct_quote_sent": 24.5,
         "conversion_pct": 0.4,
         "no_of_bookings": 1,
-        "pct_followups_sla": 53.6
+        "pct_followups_sla": 54.3
       },
       "Wk 6": {
         "total_leads": 425,
@@ -245,7 +245,7 @@
         "total_leads": 391,
         "pct_contacted_sla": 0.3,
         "pct_connected": 1.0,
-        "pct_quote_sent": 24.0,
+        "pct_quote_sent": 23.8,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
         "pct_followups_sla": 45.8
@@ -254,7 +254,7 @@
         "total_leads": 401,
         "pct_contacted_sla": 0.5,
         "pct_connected": 2.5,
-        "pct_quote_sent": 19.7,
+        "pct_quote_sent": 19.2,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
         "pct_followups_sla": 27.7
@@ -263,19 +263,19 @@
         "total_leads": 338,
         "pct_contacted_sla": 0.3,
         "pct_connected": 1.2,
-        "pct_quote_sent": 19.5,
+        "pct_quote_sent": 19.2,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
         "pct_followups_sla": 20.5
       },
       "Wk 10": {
-        "total_leads": 239,
-        "pct_contacted_sla": 0.0,
+        "total_leads": 271,
+        "pct_contacted_sla": 0.4,
         "pct_connected": 0.0,
-        "pct_quote_sent": 16.3,
+        "pct_quote_sent": 15.1,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
-        "pct_followups_sla": 10.0
+        "pct_followups_sla": 12.7
       }
     },
     "total_sales": {
@@ -283,7 +283,7 @@
         "total_leads": 1740,
         "pct_contacted_sla": 19.3,
         "pct_connected": 39.4,
-        "pct_quote_sent": 12.0,
+        "pct_quote_sent": 11.8,
         "conversion_pct": 0.8,
         "no_of_bookings": 18,
         "pct_followups_sla": 74.9
@@ -301,7 +301,7 @@
         "total_leads": 1490,
         "pct_contacted_sla": 10.1,
         "pct_connected": 30.4,
-        "pct_quote_sent": 14.9,
+        "pct_quote_sent": 14.8,
         "conversion_pct": 0.5,
         "no_of_bookings": 8,
         "pct_followups_sla": 64.7
@@ -319,25 +319,25 @@
         "total_leads": 1713,
         "pct_contacted_sla": 7.1,
         "pct_connected": 28.8,
-        "pct_quote_sent": 18.4,
+        "pct_quote_sent": 18.3,
         "conversion_pct": 0.6,
         "no_of_bookings": 10,
-        "pct_followups_sla": 67.3
+        "pct_followups_sla": 67.6
       },
       "Wk 6": {
         "total_leads": 1667,
         "pct_contacted_sla": 9.7,
         "pct_connected": 29.8,
-        "pct_quote_sent": 17.9,
+        "pct_quote_sent": 17.7,
         "conversion_pct": 0.4,
         "no_of_bookings": 6,
-        "pct_followups_sla": 65.4
+        "pct_followups_sla": 65.5
       },
       "Wk 7": {
         "total_leads": 1181,
         "pct_contacted_sla": 8.2,
         "pct_connected": 31.8,
-        "pct_quote_sent": 23.7,
+        "pct_quote_sent": 23.6,
         "conversion_pct": 0.5,
         "no_of_bookings": 6,
         "pct_followups_sla": 63.5
@@ -345,8 +345,8 @@
       "Wk 8": {
         "total_leads": 1454,
         "pct_contacted_sla": 12.0,
-        "pct_connected": 31.2,
-        "pct_quote_sent": 25.9,
+        "pct_connected": 31.3,
+        "pct_quote_sent": 25.2,
         "conversion_pct": 0.6,
         "no_of_bookings": 9,
         "pct_followups_sla": 57.9
@@ -354,26 +354,26 @@
       "Wk 9": {
         "total_leads": 1188,
         "pct_contacted_sla": 11.8,
-        "pct_connected": 30.0,
-        "pct_quote_sent": 24.0,
+        "pct_connected": 30.3,
+        "pct_quote_sent": 23.8,
         "conversion_pct": 0.1,
         "no_of_bookings": 1,
-        "pct_followups_sla": 50.6
+        "pct_followups_sla": 51.4
       },
       "Wk 10": {
-        "total_leads": 734,
-        "pct_contacted_sla": 14.4,
-        "pct_connected": 25.3,
-        "pct_quote_sent": 23.7,
+        "total_leads": 838,
+        "pct_contacted_sla": 13.3,
+        "pct_connected": 24.5,
+        "pct_quote_sent": 22.8,
         "conversion_pct": 0.0,
         "no_of_bookings": 0,
-        "pct_followups_sla": 35.1
+        "pct_followups_sla": 38.9
       }
     },
     "deeksha": {
       "Wk 1": {
         "total_leads": 1740,
-        "total_qualified": 207,
+        "total_qualified": 202,
         "total_spend": null,
         "cpl": null,
         "cpql": null
@@ -387,59 +387,59 @@
       },
       "Wk 3": {
         "total_leads": 1490,
-        "total_qualified": 204,
+        "total_qualified": 203,
         "total_spend": 310451,
         "cpl": 208,
-        "cpql": 1522
+        "cpql": 1529
       },
       "Wk 4": {
         "total_leads": 1617,
-        "total_qualified": 233,
+        "total_qualified": 231,
         "total_spend": 356479,
         "cpl": 220,
-        "cpql": 1530
+        "cpql": 1543
       },
       "Wk 5": {
         "total_leads": 1713,
-        "total_qualified": 278,
+        "total_qualified": 277,
         "total_spend": 363402,
         "cpl": 212,
-        "cpql": 1307
+        "cpql": 1312
       },
       "Wk 6": {
         "total_leads": 1667,
-        "total_qualified": 298,
+        "total_qualified": 295,
         "total_spend": 389434,
         "cpl": 234,
-        "cpql": 1307
+        "cpql": 1320
       },
       "Wk 7": {
         "total_leads": 1181,
-        "total_qualified": 280,
+        "total_qualified": 279,
         "total_spend": 307331,
         "cpl": 260,
-        "cpql": 1098
+        "cpql": 1102
       },
       "Wk 8": {
         "total_leads": 1454,
-        "total_qualified": 375,
+        "total_qualified": 366,
         "total_spend": 431060,
         "cpl": 296,
-        "cpql": 1149
+        "cpql": 1178
       },
       "Wk 9": {
         "total_leads": 1188,
-        "total_qualified": 289,
+        "total_qualified": 286,
         "total_spend": 403350,
         "cpl": 340,
-        "cpql": 1396
+        "cpql": 1410
       },
       "Wk 10": {
-        "total_leads": 734,
-        "total_qualified": 169,
-        "total_spend": 274293,
-        "cpl": 374,
-        "cpql": 1623
+        "total_leads": 838,
+        "total_qualified": 187,
+        "total_spend": 332920,
+        "cpl": 397,
+        "cpql": 1780
       }
     }
   }

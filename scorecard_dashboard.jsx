@@ -228,6 +228,31 @@ const DEFAULT_TARGETS = {
 };
 
 // ─── Utilities ───────────────────────────────────────────────
+function getWeekDateRange(quarterId, weekNum) {
+  let startStr;
+  if (quarterId === "q1fy26") startStr = "2026-01-01T12:00:00Z";
+  else if (quarterId === "q2fy26") startStr = "2026-04-01T12:00:00Z";
+  else if (quarterId === "q3fy26") startStr = "2026-07-01T12:00:00Z";
+  else if (quarterId === "q4fy26") startStr = "2026-10-01T12:00:00Z";
+  else return "";
+
+  const d = new Date(startStr);
+  d.setDate(d.getDate() + (weekNum - 1) * 7);
+
+  const dEnd = new Date(d);
+  dEnd.setDate(dEnd.getDate() + 6);
+
+  if (weekNum === 13) {
+    if (quarterId === "q1fy26") dEnd.setMonth(2, 31);
+    else if (quarterId === "q2fy26") dEnd.setMonth(5, 30);
+    else if (quarterId === "q3fy26") dEnd.setMonth(8, 30);
+    else if (quarterId === "q4fy26") dEnd.setMonth(11, 31);
+  }
+
+  const opts = { month: 'short', day: 'numeric' };
+  return `${d.toLocaleDateString('en-US', opts)} - ${dEnd.toLocaleDateString('en-US', opts)}`;
+}
+
 function fmt(val, type) {
   if (val === null || val === undefined) return null;
   if (type === "pct") return `${val}%`;
@@ -591,8 +616,11 @@ export default function App() {
               <View style={styles.colLabel}><Text style={styles.hdrText}>MEASURABLE</Text></View>
               <View style={styles.colOwner}><Text style={styles.hdrText}>OWNER</Text></View>
               <View style={styles.colTarget}><Text style={styles.hdrText}>TARGET</Text></View>
-              {WEEKS.map(wk => (
-                <View key={wk} style={styles.colWk}><Text style={styles.hdrText}>{wk}</Text></View>
+              {WEEKS.map((wk, i) => (
+                <View key={wk} style={styles.colWk}>
+                  <Text style={styles.hdrText}>{wk}</Text>
+                  <Text style={{ fontSize: 4.5, color: '#5A7A9A', marginTop: 1, fontFamily: "Helvetica", textAlign: "center" }}>{getWeekDateRange(quarter, i + 1)}</Text>
+                </View>
               ))}
             </View>
 
@@ -880,7 +908,7 @@ export default function App() {
 
           {/* Content */}
           <main style={{ flex: 1, overflow: "auto" }}>
-            {view === "scorecard" && <ScorecardView sections={visibleSections} data={liveData} targets={targets} />}
+            {view === "scorecard" && <ScorecardView sections={visibleSections} data={liveData} targets={targets} quarter={quarter} />}
             {view === "targets" && <TargetsView targets={targets} setTargets={setTargets} fileRef={fileRef} onUpload={onTargetFile} />}
           </main>
         </div>
@@ -894,7 +922,7 @@ export default function App() {
 // ═══════════════════════════════════════════════════════════════
 //  SCORECARD TABLE VIEW
 // ═══════════════════════════════════════════════════════════════
-function ScorecardView({ sections, data, targets }) {
+function ScorecardView({ sections, data, targets, quarter }) {
   return (
     <div style={{ overflow: "auto", height: "100%" }}>
       <table style={{ borderCollapse: "collapse", width: "100%", fontFamily: "'IBM Plex Mono', monospace", fontSize: 11 }}>
@@ -905,7 +933,12 @@ function ScorecardView({ sections, data, targets }) {
             <th style={{ ...TH, width: 290, minWidth: 290, textAlign: "left", padding: "11px 18px", position: "sticky", left: 0, zIndex: 30, background: "#060F1C", borderRight: "1px solid #162236" }}>MEASURABLE</th>
             <th style={{ ...TH, width: 72, minWidth: 72 }}>OWNER</th>
             <th style={{ ...TH, width: 80, minWidth: 80, borderRight: "2px solid #1E3050" }}>TARGET</th>
-            {WEEKS.map(wk => <th key={wk} style={TH}>{wk}</th>)}
+            {WEEKS.map((wk, i) => (
+              <th key={wk} style={TH}>
+                <div>{wk}</div>
+                <div style={{ fontSize: 8, color: "#4A6A8A", fontWeight: 400, marginTop: 2, letterSpacing: "normal" }}>{getWeekDateRange(quarter, i + 1)}</div>
+              </th>
+            ))}
           </tr>
         </thead>
 
