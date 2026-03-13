@@ -91,9 +91,9 @@ const EDWIN_TEAM = new Set([
 ]);
 
 // Metrics that are MANUAL (never overwritten by this script)
-const MANUAL_METRIC_NAMES = new Set([
-  'GM ROAS', 'Average Booking Value', 'Advance Received',
-]);
+// NOTE: GM ROAS, Average Booking Value, Advance Received are now AUTO-computed
+//       from the bookings table — removed from this set.
+const MANUAL_METRIC_NAMES = new Set([]);
 
 // IST offset in ms (UTC+5:30)
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
@@ -161,6 +161,38 @@ function emailLocal(email) {
 
 function inTeam(email, teamSet) {
   return teamSet.has(emailLocal(email));
+}
+
+// First-name → team lookup (fallback when sales_email is absent)
+// Built from team sets: first word of the local-part (before first dot)
+const FIRSTNAME_TO_TEAM = {};
+for (const local of ADARSH_TEAM) {
+  const fn = local.split('.')[0];
+  FIRSTNAME_TO_TEAM[fn] = 'AA';
+}
+for (const local of ASHOK_TEAM) {
+  const fn = local.split('.')[0];
+  FIRSTNAME_TO_TEAM[fn] = 'AA'; // Adarsh+Ashok combined
+}
+for (const local of EDWIN_TEAM) {
+  const fn = local.split('.')[0];
+  FIRSTNAME_TO_TEAM[fn] = 'ED';
+}
+
+function getTeamFromBooking(b) {
+  // Prefer email match
+  if (b.sales_email) {
+    const isAA = inTeam(b.sales_email, ADARSH_TEAM) || inTeam(b.sales_email, ASHOK_TEAM);
+    const isEd = inTeam(b.sales_email, EDWIN_TEAM);
+    return { isAA, isEd };
+  }
+  // Fallback: first-name match from sales_by (e.g. "Hushendra", "Ashish")
+  if (b.sales_by) {
+    const fn = b.sales_by.trim().split(/\s+/)[0].toLowerCase();
+    const team = FIRSTNAME_TO_TEAM[fn];
+    return { isAA: team === 'AA', isEd: team === 'ED' };
+  }
+  return { isAA: false, isEd: false };
 }
 
 // ── SLA helpers (60 business minutes) ────────────────────────────────────────
@@ -267,8 +299,15 @@ async function run() {
   );
   console.log(`\n   ${tasks.length} task rows loaded.`);
 
-  // 5. Fetch ad spend for Q1 2026
-  console.log('\n5. Fetching ad spend for Q1 2026…');
+  // 5. Fetch bookings from Google Sheet sync (Q1 2026)
+  console.log('\n5. Fetching bookings for Q1 2026…');
+  const bookingsRaw = await fetchAllPages(
+    `/rest/v1/bookings?select=query_id,sales_date,sales_by,sales_email,selling_price_inr,advance_received_inr,margin&sales_date=gte.2026-01-01&sales_date=lt.2026-04-01`
+  );
+  console.log(`\n   ${bookingsRaw.length} booking rows loaded.`);
+
+  // 5b. Fetch ad spend for Q1 2026
+  console.log('\n6. Fetching ad spend for Q1 2026…');
   const fbAds = await fetchAllPages(
     `/rest/v1/facebook_ads?select=date,spend&date=gte.2026-01-01&date=lt.2026-04-01`
   );
@@ -279,7 +318,7 @@ async function run() {
 
   // ── Aggregate ────────────────────────────────────────────────────────────────
 
-  console.log('\n6. Aggregating metrics…');
+  console.log('\n7. Aggregating metrics…');
 
   // Initialise per-week buckets
   const mkt = WEEKS.map(() => ({ leads: 0, qualified: 0, spend: 0 }));
@@ -290,6 +329,11 @@ async function run() {
   const tasksSalesEd  = WEEKS.map(() => ({ due: 0, onTime: 0 }));
   const tasksSalesAll = WEEKS.map(() => ({ due: 0, onTime: 0 }));
   const tasksAll = WEEKS.map(() => ({ due: 0, onTime: 0 })); // for marketing (all)
+
+  // Bookings financial buckets (from Google Sheet sync)
+  const bkgAA  = WEEKS.map(() => ({ count: 0, selling: 0, advance: 0, margin: 0 }));
+  const bkgEd  = WEEKS.map(() => ({ count: 0, selling: 0, advance: 0, margin: 0 }));
+  const bkgAll = WEEKS.map(() => ({ count: 0, selling: 0, advance: 0, margin: 0 }));
 
   // --- Leads ---
   leads.forEach(l => {
@@ -349,6 +393,28 @@ async function run() {
     if (isAA || isEd) { tasksSalesAll[wi].due++; if (onTime) tasksSalesAll[wi].onTime++; }
   });
 
+  // --- Bookings (Google Sheet) ---
+  bookingsRaw.forEach(b => {
+    const wi = getWeekIndex(b.sales_date + 'T00:00:00Z');
+    if (wi === -1) return;
+    const selling = Number(b.selling_price_inr || 0);
+    const advance = Number(b.advance_received_inr || 0);
+    const margin  = Number(b.margin || 0);
+    const { isAA, isEd } = getTeamFromBooking(b);
+    if (isAA) {
+      bkgAA[wi].count++;  bkgAA[wi].selling += selling;
+      bkgAA[wi].advance += advance; bkgAA[wi].margin += margin;
+    }
+    if (isEd) {
+      bkgEd[wi].count++;  bkgEd[wi].selling += selling;
+      bkgEd[wi].advance += advance; bkgEd[wi].margin += margin;
+    }
+    if (isAA || isEd) {
+      bkgAll[wi].count++;  bkgAll[wi].selling += selling;
+      bkgAll[wi].advance += advance; bkgAll[wi].margin += margin;
+    }
+  });
+
   // --- Ad spend (ex-GST × 1.18) ---
   [...fbAds, ...gAds].forEach(row => {
     const wi = getWeekIndex(row.date + 'T00:00:00Z');
@@ -358,20 +424,23 @@ async function run() {
 
   // ── Build weekly_data rows ────────────────────────────────────────────────
 
-  console.log('\n7. Building scorecard_weekly_data rows…');
+  console.log('\n8. Building scorecard_weekly_data rows…');
   const rows = [];
 
   const pct  = (n, d) => d > 0 ? Math.round((n / d) * 1000) / 10 : null; // 1 decimal
   const round2 = v => Math.round(v * 100) / 100;
 
   WEEKS.forEach((wk, i) => {
-    const m = mkt[i];
-    const aa = salesAA[i];
-    const ed = salesEd[i];
-    const al = salesAll[i];
+    const m   = mkt[i];
+    const aa  = salesAA[i];
+    const ed  = salesEd[i];
+    const al  = salesAll[i];
     const taa = tasksSalesAA[i];
     const ted = tasksSalesEd[i];
     const tal = tasksSalesAll[i];
+    const baa = bkgAA[i];
+    const bed = bkgEd[i];
+    const bal = bkgAll[i];
 
     function push(metricName, value) {
       const id = mid(metricName);
@@ -380,20 +449,25 @@ async function run() {
     }
 
     // Marketing
-    push('Total Leads Generated',     m.leads || null);
-    push('Total Qualified Leads',      m.qualified || null);
-    push('Total Spend incl. GST',      m.spend > 0 ? round2(m.spend) : null);
-    push('Cost Per Lead (CPL)',         m.leads > 0 && m.spend > 0 ? round2(m.spend / m.leads) : null);
-    push('Cost Per Qualified Lead',    m.qualified > 0 && m.spend > 0 ? round2(m.spend / m.qualified) : null);
+    push('Total Leads Generated',   m.leads || null);
+    push('Total Qualified Leads',   m.qualified || null);
+    push('Total Spend incl. GST',   m.spend > 0 ? round2(m.spend) : null);
+    push('Cost Per Lead (CPL)',      m.leads > 0 && m.spend > 0 ? round2(m.spend / m.leads) : null);
+    push('Cost Per Qualified Lead', m.qualified > 0 && m.spend > 0 ? round2(m.spend / m.qualified) : null);
+    // GM ROAS = Total Margin / Total Ad Spend (all teams combined)
+    push('GM ROAS', bal.margin > 0 && m.spend > 0 ? round2(bal.margin / m.spend) : null);
 
-    // Sales – Adarsh & Ashok
-    push('Total No. of Leads Taken',            aa.total || null);
-    push('% Leads Contacted as per SLA',        pct(aa.sla, aa.total));
-    push('% Leads Connected',                   pct(aa.connected, aa.total));
-    push('% Quote Sent',                        pct(aa.quoted, aa.total));
-    push('Conversion %',                        pct(aa.won, aa.total));
-    push('No. of Bookings',                     aa.bookings || null);
-    push('% Follow-ups Done as per SLA',        pct(taa.onTime, taa.due));
+    // Sales – All (Adarsh + Ashok + Edwin combined)
+    push('Total No. of Leads Taken',        al.total || null);
+    push('% Leads Contacted as per SLA',    pct(al.sla, al.total));
+    push('% Leads Connected',               pct(al.connected, al.total));
+    push('% Quote Sent',                    pct(al.quoted, al.total));
+    push('Conversion %',                    pct(al.won, al.total));
+    push('% Follow-ups Done as per SLA',    pct(tal.onTime, tal.due));
+    // Booking financials – All teams combined (Adarsh + Ashok + Edwin)
+    push('No. of Bookings',        bal.count   || null);
+    push('Average Booking Value',  bal.count   > 0 ? round2(bal.selling / bal.count) : null);
+    push('Advance Received',       bal.advance > 0 ? round2(bal.advance) : null);
   });
 
   console.log(`   ${rows.length} rows to upsert.`);
@@ -401,7 +475,7 @@ async function run() {
   // ── Delete old auto-computed values, then insert fresh ───────────────────
 
   if (autoMetricIds.length > 0) {
-    console.log('\n8. Deleting stale auto-computed entries…');
+    console.log('\n9. Deleting stale auto-computed entries…');
     const idList = autoMetricIds.map(id => `"${id}"`).join(',');
     await supaReq(
       `/rest/v1/scorecard_weekly_data?metric_id=in.(${autoMetricIds.join(',')})`,
@@ -411,7 +485,7 @@ async function run() {
   }
 
   if (rows.length > 0) {
-    console.log('\n9. Inserting fresh computed data…');
+    console.log('\n10. Inserting fresh computed data…');
     // Insert in chunks of 200
     for (let i = 0; i < rows.length; i += 200) {
       await supaReq('/rest/v1/scorecard_weekly_data', 'POST', rows.slice(i, i + 200));

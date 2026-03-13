@@ -1,0 +1,10 @@
+Query ID,Sales Date,Customer Details,Nature of Booking,Particulars,Mark UP (INR),Sales BY,Selling Price (INR),Vendor Liability,Advance Received (INR),Tax (INR),TCS (INR),Margin
+2001737,01-Mar-26,Nancy Kumar,Package,,,Hushendra,"350,644","265,644","₹ 1,58,177","17,532.00","18,409.00","85,000"
+2029834,01-Mar-26,Mr. Highbar Technocrat Ltd. Suyog,Package,,,Ashish,"938,200","562,000","₹ 10,000","46,910.00",,"376,200"
+1996350,03-Mar-26,Payal Maken,Package,,,Ashamp,"311,800","268,800",₹ -,"15,590.00","16,370.00","43,000"
+1996350,03-Mar-26,Payal Maken,Flight,,,Ashamp,"111,412","111,412","₹ 94,100",,,0
+1996350,03-Mar-26,Payal Maken,Visa,,,Ashamp,"18,000","18,000","₹ 18,000",,,0
+2035041,08/03/2026,Ashish Kesharwani,Package,,,Dheeraj,"118,480","93,480","₹ 3,200","5,924","6,220","25,000"
+2035041,08/03/2026,Ashish Kesharwani,Flight,,,Dheeraj,"94,000","84,000","₹ 95,800","1,800",,"10,000"
+2036879,12/03/2026,Avinash Bansal,Package,,,Dheeraj,"361,818",326340,₹ -,"18,091","18,995","35,478"
+2036879,12/03/2026,Avinash Bansal,Flight,,,Dheeraj,"136,500",130000,"₹ 1,25,000","1,170",,"6,500"
