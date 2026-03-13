@@ -4,22 +4,19 @@ import { DateTime } from "luxon";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const IST_TZ = "Asia/Kolkata";
-const Q1_START = DateTime.fromObject({ year: 2026, month: 1, day: 1 }, { zone: IST_TZ });
-
-const TELECRM_DB_HOST = Deno.env.get("TELECRM_DB_HOST")!;
-const TELECRM_DB_PORT = Deno.env.get("TELECRM_DB_PORT") || "5432";
-const TELECRM_DB_NAME = Deno.env.get("TELECRM_DB_NAME")!;
-const TELECRM_DB_USER = Deno.env.get("TELECRM_DB_USER")!;
-const TELECRM_DB_PASS = Deno.env.get("TELECRM_DB_PASS")!;
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("SUPABASE_URL_OVERRIDE")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
-    auth: { persistSession: false },
-});
 
 const BATCH_SIZE = 500;
+
+function getSupabase() {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("SUPABASE_URL_OVERRIDE")!;
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    if (!SUPABASE_URL || !SERVICE_KEY) {
+        throw new Error("Missing Supabase credentials in env.");
+    }
+    return createClient(SUPABASE_URL, SERVICE_KEY, {
+        auth: { persistSession: false },
+    });
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function istToUtc(dateStr: Date | string | null): string | null {
@@ -99,7 +96,7 @@ const _NAME_FROM_EMAIL: Record<string, string> = {
 const ALL_TEAM_EMAILS = Object.keys(_NAME_FROM_EMAIL).map(e => e.toLowerCase());
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
-async function getLastSync(tableName: string): Promise<string> {
+async function getLastSync(supabase: any, tableName: string): Promise<string> {
     const { data, error } = await supabase
         .from("etl_sync_log")
         .select("last_sync_at")
@@ -113,7 +110,7 @@ async function getLastSync(tableName: string): Promise<string> {
     return data.last_sync_at;
 }
 
-async function updateSyncLog(tableName: string, rowsUpserted: number, errMsg: string | null = null) {
+async function updateSyncLog(supabase: any, tableName: string, rowsUpserted: number, errMsg: string | null = null) {
     const payload = {
         table_name: tableName,
         last_sync_at: new Date().toISOString(),
@@ -124,7 +121,7 @@ async function updateSyncLog(tableName: string, rowsUpserted: number, errMsg: st
     await supabase.from("etl_sync_log").upsert(payload, { onConflict: "table_name" });
 }
 
-async function upsertBatch(table: string, rows: any[], conflictCol: string) {
+async function upsertBatch(supabase: any, table: string, rows: any[], conflictCol: string) {
     let total = 0;
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
         const batch = rows.slice(i, i + BATCH_SIZE);
@@ -142,6 +139,14 @@ async function upsertBatch(table: string, rows: any[], conflictCol: string) {
 async function runSync() {
     console.log("Starting ETL sync...");
 
+    const supabase = getSupabase();
+
+    const TELECRM_DB_HOST = Deno.env.get("TELECRM_DB_HOST")!;
+    const TELECRM_DB_PORT = Deno.env.get("TELECRM_DB_PORT") || "5432";
+    const TELECRM_DB_NAME = Deno.env.get("TELECRM_DB_NAME")!;
+    const TELECRM_DB_USER = Deno.env.get("TELECRM_DB_USER")!;
+    const TELECRM_DB_PASS = Deno.env.get("TELECRM_DB_PASS")!;
+
     const teleCrm = new Client({
         hostname: TELECRM_DB_HOST,
         port: parseInt(TELECRM_DB_PORT),
@@ -156,9 +161,9 @@ async function runSync() {
 
     try {
         // Convert last sync from UTC ISO to naive IST string for RDS queries
-        const leadsSyncUtc = await getLastSync("raw_leads");
-        const callsSyncUtc = await getLastSync("raw_call_logs");
-        const tasksSyncUtc = await getLastSync("raw_tasks");
+        const leadsSyncUtc = await getLastSync(supabase, "raw_leads");
+        const callsSyncUtc = await getLastSync(supabase, "raw_call_logs");
+        const tasksSyncUtc = await getLastSync(supabase, "raw_tasks");
 
         // Convert logic equivalent to `astimezone(IST).replace(tzinfo=None)`
         const toIstNaive = (utcIso: string) => DateTime.fromISO(utcIso, { zone: "utc" }).setZone(IST_TZ).toFormat("yyyy-MM-dd HH:mm:ss.u");
@@ -288,8 +293,8 @@ async function runSync() {
             skill_map_group: row.skill_map_group || null,
             lead_distribution_type: row.lead_distribution_type || null,
         }));
-        await upsertBatch("raw_leads", leadRows, "telecrm_id");
-        await updateSyncLog("raw_leads", leadRows.length);
+        await upsertBatch(supabase, "raw_leads", leadRows, "telecrm_id");
+        await updateSyncLog(supabase, "raw_leads", leadRows.length);
         console.log(`Upserted ${leadRows.length} leads.`);
 
         // ── Retrieve All TeleCRM IDs mapped so far ──
@@ -329,19 +334,22 @@ async function runSync() {
                     if (d.includes("inbound")) direction = "inbound";
                     else if (d.includes("outbound")) direction = "outbound";
                 }
+                const isAnswered = row.call_status_raw === "ANSWER";
+                const durSec = row.duration_seconds ?? 0;
                 return {
                     telecrm_call_id: row.telecrm_call_id,
                     lead_telecrm_id: row.lead_telecrm_id,
                     agent_email: row.agent_email || null,
                     agent_name: _NAME_FROM_EMAIL[row.agent_email || ""] || null,
                     call_direction: direction,
-                    call_status: row.call_status_raw === "ANSWER" ? "connected" : "not_connected",
-                    duration_seconds: row.duration_seconds,
-                    call_started_at: istToUtc(row.created_on)
+                    call_status: isAnswered ? "connected" : "not_connected",
+                    duration_seconds: durSec,
+                    call_started_at: istToUtc(row.created_on),
+                    is_meaningful_connect: isAnswered && durSec >= 60,
                 };
             });
-            await upsertBatch("raw_call_logs", callRows, "telecrm_call_id");
-            await updateSyncLog("raw_call_logs", callRows.length);
+            await upsertBatch(supabase, "raw_call_logs", callRows, "telecrm_call_id");
+            await updateSyncLog(supabase, "raw_call_logs", callRows.length);
             console.log(`Upserted ${callRows.length} call logs.`);
 
             // ── TASKS ──
@@ -382,6 +390,15 @@ async function runSync() {
                     status_norm = "cancelled";
                 }
 
+                // is_completed_on_time: Done AND completed before or at deadline
+                const dueUtc = row.deadline ? new Date(istToUtc(row.deadline)!) : null;
+                const completedUtc = completed_at ? new Date(completed_at) : null;
+                const isOnTime = status_norm === "completed" &&
+                    row.status_raw === "Done" &&
+                    dueUtc !== null &&
+                    completedUtc !== null &&
+                    completedUtc <= dueUtc;
+
                 return {
                     telecrm_task_id: row.telecrm_task_id,
                     lead_telecrm_id: leadId,
@@ -390,11 +407,12 @@ async function runSync() {
                     task_type: "call",
                     due_at: istToUtc(row.deadline),
                     completed_at,
-                    status: status_norm
+                    status: status_norm,
+                    is_completed_on_time: isOnTime,
                 };
             });
-            await upsertBatch("raw_tasks", taskRows, "telecrm_task_id");
-            await updateSyncLog("raw_tasks", taskRows.length);
+            await upsertBatch(supabase, "raw_tasks", taskRows, "telecrm_task_id");
+            await updateSyncLog(supabase, "raw_tasks", taskRows.length);
             console.log(`Upserted ${taskRows.length} tasks.`);
         }
 
@@ -407,21 +425,42 @@ async function runSync() {
     return { success: true };
 }
 
-// ── Entry Points ──────────────────────────────────────────────────────────────
-
-// Cron Execution (runs every 15 minutes automatically via Supabase pg_cron)
+// ── Scheduled cron (every 15 min) ────────────────────────────────────────────
 Deno.cron("TeleCRM ETL Sync", "*/15 * * * *", async () => {
-    console.log("CRON Execution trigger!");
-    await runSync();
+    console.log("CRON trigger fired.");
+    try {
+        await runSync();
+    } catch (err) {
+        console.error("Cron Error:", err);
+    }
 });
 
-// HTTP Execution (Allows manual triggering via curl or Supabase Dashboard)
-Deno.serve(async (req) => {
-    // basic auth check if needed (you ideally protect it via edge function settings)
-    try {
-        const res = await runSync();
-        return new Response(JSON.stringify(res), { headers: { "Content-Type": "application/json" } });
-    } catch (err: any) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+// ── HTTP handler (required by Supabase; also allows manual trigger) ───────────
+Deno.serve(async (req: Request) => {
+    // Only allow POST for manual trigger; GET returns status
+    if (req.method === "GET") {
+        return new Response(
+            JSON.stringify({ status: "ok", function: "telecrm-cron-sync", schedule: "*/15 * * * *" }),
+            { headers: { "Content-Type": "application/json" } }
+        );
     }
+
+    if (req.method === "POST") {
+        console.log("Manual HTTP trigger received.");
+        try {
+            const result = await runSync();
+            return new Response(JSON.stringify(result), {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+            });
+        } catch (err: any) {
+            console.error("Manual trigger error:", err);
+            return new Response(JSON.stringify({ error: err.message }), {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+    }
+
+    return new Response("Method not allowed", { status: 405 });
 });
