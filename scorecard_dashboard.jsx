@@ -139,6 +139,7 @@ export default function ScorecardDashboard() {
   const [metricsConfig, setMetricsConfig] = useState([]);
   const [weeklyData, setWeeklyData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [editableData, setEditableData] = useState({});
 
@@ -193,6 +194,23 @@ export default function ScorecardDashboard() {
     await fetchData();
   };
 
+  const handleManualSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/sync', { method: 'POST' });
+      if (!res.ok) {
+        throw new Error(`Sync failed with status: ${res.status}`);
+      }
+      await fetchData(); // Refresh data from Supabase DB after sync completes
+      alert("Data refresh completed successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to refresh data: " + err.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const downloadCSV = () => {
     const rows = [["Category", "Owner", "Metric", "Target", ...WEEKS.map(w => w.label)]];
     Object.entries(groupedMetrics).forEach(([category, metrics]) => {
@@ -236,6 +254,9 @@ export default function ScorecardDashboard() {
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={handleManualSync} disabled={syncing} style={{ ...btnBase, border: "1.5px solid #E5E7EB", background: "#FFFFFF", color: syncing ? "#9CA3AF" : "#374151" }}>
+            {syncing ? "↻ Syncing..." : "↻ Refresh Data"}
+          </button>
           <button onClick={downloadCSV} style={{ ...btnBase, border: "1.5px solid #E5E7EB", background: "#FFFFFF", color: "#374151" }}>
             ↓ Export CSV
           </button>
